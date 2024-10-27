@@ -3,39 +3,75 @@ name: TWRP Build
 on:
   push:
     branches:
-      - main  # ou a branch que voc¨º quer usar para compilar
+      - main  # ou a branch que você quer usar para compilar
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - name: Configurando o Reposit¨®rio
-        uses: actions/checkout@v3  # Usando a vers0Š0o mais recente
+    env:  # Definindo a variável de ambiente para todo o job
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
-      - name: Instalando Depend¨ºncias
+    steps:
+      - name: Configurando o Repositório
+        uses: actions/checkout@v3  # Usando a vers??o mais recente do checkout
+
+      - name: Instalando Dependências
         run: |
           sudo apt-get update
           sudo apt-get install -y openjdk-8-jdk bc bison build-essential curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32z1-dev liblz4-tool libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
 
-      - name: Clonando o Reposit¨®rio de C¨®digo-Fonte do TWRP
+      - name: Instalando o Repo
+        run: |
+          # Baixa o script do repo
+          wget https://storage.googleapis.com/git-repo-downloads/repo
+          # Torna o script executável
+          chmod a+x repo
+          # Move para /usr/bin para facilitar o acesso
+          sudo mv repo /usr/bin/
+
+      - name: Verificar Espa??o em Disco
+        run: df -h  # Exibe o uso de espa??o em disco antes da clonagem
+
+      - name: Clonando o Repositório de Código-Fonte do TWRP
         run: |
           mkdir -p ~/twrp
           cd ~/twrp
-          git clone --depth=1 https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git .repo/manifests -b twrp-12.1
-          repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1
-          repo sync -j4
+          git init
+          git remote add -f origin https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git
+          git config core.sparseCheckout true
+          # Adicione os caminhos dos diretórios que você realmente precisa
+          echo "device/*" >> .git/info/sparse-checkout
+          echo "vendor/*" >> .git/info/sparse-checkout
+          echo "build/*" >> .git/info/sparse-checkout
+          echo ".repo/*" >> .git/info/sparse-checkout
+          # Sincroniza e atualiza
+          git pull origin twrp-12.1
+
+      - name: Verificar a Estrutura do Repositório
+        run: |
+          cd ~/twrp
+          ls -R  # Lista recursivamente os diretórios para verificar a estrutura
+
 
       - name: Clonando o Reposit¨®rio do Dispositivo
         run: |
           cd ~/twrp
           git clone --depth=1 https://github.com/matehus9/device_xiaomi_ice-TWRP.git device/xiaomi/ice -b twrp-12.1  # Clonando o seu fork
           source build/envsetup.sh  # Certifique-se de que este arquivo existe no seu fork
-          lunch twrp_ice-eng  # Substitua "ice" pelo codename do seu dispositivo
+          # Verificar se o clone foi bem-sucedido
+          cd device/xiaomi/ice
+          ls -l  # Lista o conteúdo para confirmar o clone
+
+      - name: Configurando o Ambiente de Compilacao
+        run: |
+          cd ~/twrp
+          source build/envsetup.sh
+          lunch twrp_ice  # Substitua "ice" pelo codename do seu dispositivo
           make recoveryimage
 
       - name: Salvando a Imagem Compilada
-        uses: actions/upload-artifact@v3  # Usando a vers0Š0o mais recente
+        uses: actions/upload-artifact@v3  # Usando a vers??o mais recente
         with:
           name: TWRP-Image
           path: ~/twrp/out/target/product/ice/recovery.img  # Substitua "ice" pelo codename do seu dispositivo
