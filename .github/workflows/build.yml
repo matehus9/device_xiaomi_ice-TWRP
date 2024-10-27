@@ -1,4 +1,4 @@
-name: TWRP Build
+name: TWRP Funcional
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Configurando o Repositório
-        uses: actions/checkout@v3  # Usando a versão mais recente
+        uses: actions/checkout@v3  # Usando a vers??o mais recente do checkout
 
       - name: Instalando Dependências
         run: |
@@ -30,26 +30,34 @@ jobs:
           # Move para /usr/bin para facilitar o acesso
           sudo mv repo /usr/bin/
 
+      - name: Verificar Espa??o em Disco
+        run: df -h  # Exibe o uso de espa??o em disco antes da clonagem
+
       - name: Clonando o Repositório de Código-Fonte do TWRP
         run: |
           mkdir -p ~/twrp
           cd ~/twrp
-          # Inicializa o repositório
-          repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1
-          # Sincroniza o repositório
-          repo sync -j4
+          git init
+          git remote add -f origin https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git
+          git config core.sparseCheckout true
+          # Adicione os caminhos dos diretórios que você realmente precisa
+          echo "device/*" >> .git/info/sparse-checkout  # Adapte isso ao que você precisa
+          echo "vendor/*" >> .git/info/sparse-checkout  # Adapte isso ao que você precisa
+          echo ".repo/*" >> .git/info/sparse-checkout  # Incluindo o diretório .repo
+          # Sincroniza e atualiza
+          git pull origin twrp-12.1
 
-      - name: Configurando o Dispositivo
+      - name: Clonando o Repositório do Dispositivo
         run: |
           cd ~/twrp
           # Clonando o repositório do dispositivo
-          git clone https://github.com/boedhack99/device_xiaomi_ice-TWRP device/xiaomi/ice  # Repositório do seu dispositivo
+          git clone https://github.com/boedhack99/device_xiaomi_ice-TWRP device/xiaomi/ice  # Substitua pelo repositório do seu dispositivo
           source build/envsetup.sh
-          lunch twrp_ice # Codename do seu dispositivo
+          lunch twrp_ice  # Substitua "ice" pelo codename do seu dispositivo
           make recoveryimage
 
       - name: Salvando a Imagem Compilada
-        uses: actions/upload-artifact@v3  # Usando a versão mais recente
+        uses: actions/upload-artifact@v3  # Usando a vers??o mais recente
         with:
           name: TWRP-Image
           path: ~/twrp/out/target/product/ice/recovery.img  # Substitua "ice" pelo codename do seu dispositivo
