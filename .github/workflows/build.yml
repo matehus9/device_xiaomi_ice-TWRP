@@ -1,4 +1,4 @@
-name: TWRP Funcional
+name: TWRP Build
 
 on:
   push:
@@ -41,17 +41,30 @@ jobs:
           git remote add -f origin https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git
           git config core.sparseCheckout true
           # Adicione os caminhos dos diretórios que você realmente precisa
-          echo "device/*" >> .git/info/sparse-checkout  # Adapte isso ao que você precisa
-          echo "vendor/*" >> .git/info/sparse-checkout  # Adapte isso ao que você precisa
-          echo ".repo/*" >> .git/info/sparse-checkout  # Incluindo o diretório .repo
+          echo "device/*" >> .git/info/sparse-checkout
+          echo "vendor/*" >> .git/info/sparse-checkout
+          echo "build/*" >> .git/info/sparse-checkout
+          echo ".repo/*" >> .git/info/sparse-checkout
           # Sincroniza e atualiza
           git pull origin twrp-12.1
+
+      - name: Verificar a Estrutura do Repositório
+        run: |
+          cd ~/twrp
+          ls -R  # Lista recursivamente os diretórios para verificar a estrutura
 
       - name: Clonando o Repositório do Dispositivo
         run: |
           cd ~/twrp
           # Clonando o repositório do dispositivo
-          git clone https://github.com/boedhack99/device_xiaomi_ice-TWRP device/xiaomi/ice  # Substitua pelo repositório do seu dispositivo
+          git clone https://github.com/boedhack99/device_xiaomi_ice-TWRP device/xiaomi/ice || { echo "Falha ao clonar o repositório do dispositivo"; exit 1; }
+          # Verificar se o clone foi bem-sucedido
+          cd device/xiaomi/ice
+          ls -l  # Lista o conteúdo para confirmar o clone
+
+      - name: Configurando o Ambiente de Compilacao
+        run: |
+          cd ~/twrp
           source build/envsetup.sh
           lunch twrp_ice  # Substitua "ice" pelo codename do seu dispositivo
           make recoveryimage
