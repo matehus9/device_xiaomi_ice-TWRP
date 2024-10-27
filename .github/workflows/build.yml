@@ -9,9 +9,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:  # Definindo a variável de ambiente para todo o job
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
     steps:
       - name: Configurando o Repositório
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3  # Atualizado para a versão mais recente
 
       - name: Instalando Dependências
         run: |
@@ -29,13 +32,13 @@ jobs:
       - name: Configurando o Dispositivo
         run: |
           cd ~/twrp
-          git clone https://github.com/boedhack99/device_xiaomi_ice-TWRP device/xiaomi/ice # Substitua com o repositório do seu dispositivo
+          git clone https://github.com/boedhack99/device_xiaomi_ice-TWRP device/xiaomi/ice  # Repositório do seu dispositivo
           source build/envsetup.sh
-          lunch twrp_ice-eng # Substitua "codename" pelo codename do seu dispositivo
+          lunch twrp_ice-eng  # Codename do seu dispositivo
           make recoveryimage
 
       - name: Salvando a Imagem Compilada
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3  # Atualizado para a versão mais recente
         with:
           name: TWRP-Image
-          path: ~/twrp/out/target/product/ice/recovery.img  # Substitua "codename" pelo codename do seu dispositivo
+          path: ~/twrp/out/target/product/ice/recovery.img  # Substitua "ice" pelo codename do seu dispositivo
