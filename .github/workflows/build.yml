@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Configurando o Repositório
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Instalando Dependências
         run: |
