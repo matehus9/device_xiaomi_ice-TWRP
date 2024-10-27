@@ -35,7 +35,7 @@ jobs:
           make recoveryimage
 
       - name: Salvando a Imagem Compilada
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: TWRP-Image
           path: ~/twrp/out/target/product/ice/recovery.img  # Substitua "codename" pelo codename do seu dispositivo
