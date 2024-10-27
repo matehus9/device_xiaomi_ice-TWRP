@@ -57,7 +57,7 @@ jobs:
         run: |
           cd ~/twrp
           # Clonando o repositório do dispositivo
-          git clone https://github.com/boedhack99/device_xiaomi_ice-TWRP device/xiaomi/ice || { echo "Falha ao clonar o repositório do dispositivo"; exit 1; }
+          git clone https://github.com/matehus9/device_xiaomi_ice-TWRP/tree/twrp-12.1 device/xiaomi/ice || { echo "Falha ao clonar o repositório do dispositivo"; exit 1; }
           # Verificar se o clone foi bem-sucedido
           cd device/xiaomi/ice
           ls -l  # Lista o conteúdo para confirmar o clone
